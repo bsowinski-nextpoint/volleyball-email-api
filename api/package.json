@@ -1,0 +1,16 @@
+{
+  "name": "volleyball-email-api",
+  "version": "1.0.0",
+  "description": "Email API for volleyball tryout scores",
+  "main": "api/send-email.js",
+  "scripts": {
+    "dev": "vercel dev",
+    "deploy": "vercel --prod"
+  },
+  "dependencies": {
+    "resend": "^3.0.0"
+  },
+  "engines": {
+    "node": "18.x"
+  }
+}
