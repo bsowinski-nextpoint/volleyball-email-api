@@ -70,54 +70,122 @@ export default async function handler(req, res) {
     const scoreRowsHtml = scores.map(score => {
       const playerNameWithEmojis = `${score.playerName}${score.love ? ' ❤️' : ''}${score.no ? ' 🚫' : ''}`;
       
-      return `<tr>
-        <td style="padding: 10px; border: 1px solid #ddd;">${playerNameWithEmojis}</td>
-        <td style="padding: 10px; text-align: center; border: 1px solid #ddd;">${score.tryoutNumber}</td>
-        <td style="padding: 10px; text-align: center; background: ${getScoreBackgroundColor(score.passScore)}; border: 1px solid #ddd;">${score.passScore}</td>
-        <td style="padding: 10px; text-align: center; background: ${getScoreBackgroundColor(score.setScore)}; border: 1px solid #ddd;">${score.setScore}</td>
-        <td style="padding: 10px; text-align: center; background: ${getScoreBackgroundColor(score.hitScore)}; border: 1px solid #ddd;">${score.hitScore}</td>
-        <td style="padding: 10px; text-align: center; background: ${getScoreBackgroundColor(score.serveScore)}; border: 1px solid #ddd;">${score.serveScore}</td>
-        <td style="padding: 10px; text-align: center; background: ${getScoreBackgroundColor(score.overallScore)}; border: 1px solid #ddd; font-weight: bold;">${score.overallScore}</td>
-        <td style="padding: 10px; border: 1px solid #ddd;">${score.notes || '-'}</td>
-      </tr>`;
+      return `
+        <tr>
+          <td style="padding: 10px; border: 1px solid #ddd; text-align: left;">${playerNameWithEmojis}</td>
+          <td style="padding: 10px; border: 1px solid #ddd; text-align: center;">${score.tryoutNumber || '-'}</td>
+          <td style="padding: 10px; border: 1px solid #ddd; text-align: center; background: ${getScoreBackgroundColor(score.passScore)}; font-weight: bold;">${score.passScore || 0}</td>
+          <td style="padding: 10px; border: 1px solid #ddd; text-align: center; background: ${getScoreBackgroundColor(score.setScore)}; font-weight: bold;">${score.setScore || 0}</td>
+          <td style="padding: 10px; border: 1px solid #ddd; text-align: center; background: ${getScoreBackgroundColor(score.hitScore)}; font-weight: bold;">${score.hitScore || 0}</td>
+          <td style="padding: 10px; border: 1px solid #ddd; text-align: center; background: ${getScoreBackgroundColor(score.serveScore)}; font-weight: bold;">${score.serveScore || 0}</td>
+          <td style="padding: 10px; border: 1px solid #ddd; text-align: center; background: ${getScoreBackgroundColor(score.overallScore)}; font-weight: bold; font-size: 16px;">${score.overallScore || 0}</td>
+          <td style="padding: 10px; border: 1px solid #ddd; text-align: center;">
+            ${score.phd ? '<span style="color: #28a745;">✓ PHD</span>' : ''}
+            ${score.coachability ? '<span style="color: #28a745;">✓ Coach</span>' : ''}
+            ${!score.phd && !score.coachability ? '-' : ''}
+          </td>
+          <td style="padding: 10px; border: 1px solid #ddd; text-align: left;">${score.notes || '-'}</td>
+        </tr>`;
     }).join('');
 
     // Generate the full HTML email
     const emailHtml = `<!DOCTYPE html>
     <html>
-    <body style="font-family: Arial; background: #f4f4f4; margin: 0; padding: 20px;">
-      <div style="max-width: 600px; margin: 0 auto; background: white; border-radius: 8px; overflow: hidden;">
-        <div style="background: #1a1a1a; padding: 30px; text-align: center;">
-          <img src="https://res.cloudinary.com/deh4i8pla/image/upload/v1755287876/Logo-2-wht-ball_bxma9y.png" 
-               alt="Next Point Performance" style="height: 60px;">
-        </div>
-        <div style="padding: 30px;">
-          <h1>Tryout Evaluation Report</h1>
-          <p><strong>Coach:</strong> ${coachName}</p>
-          <p><strong>Group:</strong> ${tryoutGroup}</p>
-          <p><strong>Date:</strong> ${new Date().toLocaleDateString()}</p>
-          <table style="width: 100%; border-collapse: collapse; margin-top: 20px;">
-            <thead>
-              <tr style="background: #f0f0f0;">
-                <th style="padding: 10px; text-align: left; border: 1px solid #ddd;">Player</th>
-                <th style="padding: 10px; border: 1px solid #ddd;">Tryout #</th>
-                <th style="padding: 10px; border: 1px solid #ddd;">Pass</th>
-                <th style="padding: 10px; border: 1px solid #ddd;">Set</th>
-                <th style="padding: 10px; border: 1px solid #ddd;">Hit</th>
-                <th style="padding: 10px; border: 1px solid #ddd;">Serve</th>
-                <th style="padding: 10px; border: 1px solid #ddd;">Overall</th>
-                <th style="padding: 10px; border: 1px solid #ddd;">Notes</th>
+    <head>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <style>
+        @media only screen and (max-width: 600px) {
+          .email-container { width: 100% !important; }
+          .logo { height: 80px !important; }
+        }
+      </style>
+    </head>
+    <body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f4f4f4;">
+      <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color: #f4f4f4;">
+        <tr>
+          <td align="center" style="padding: 20px 0;">
+            <table class="email-container" role="presentation" cellspacing="0" cellpadding="0" border="0" width="600" style="background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+              
+              <!-- Header with Logo -->
+              <tr>
+                <td style="background-color: #1a1a1a; padding: 30px; text-align: center;">
+                  <img class="logo" src="https://res.cloudinary.com/deh4i8pla/image/upload/v1755304236/tblogo_name_z84yo6.jpg" 
+                       alt="Nextpoint Performance" 
+                       style="height: 100px; width: auto; display: block; margin: 0 auto;">
+                </td>
               </tr>
-            </thead>
-            <tbody>
-              ${scoreRowsHtml}
-            </tbody>
-          </table>
-        </div>
-        <div style="padding: 20px; background: #f8f8f8; text-align: center; color: #666;">
-          <p>Questions? Contact us at info@nextpointperformance.com</p>
-        </div>
-      </div>
+              
+              <!-- Main Content -->
+              <tr>
+                <td style="padding: 30px;">
+                  <h2 style="color: #1a1a1a; margin: 0 0 10px 0; text-align: center; font-size: 24px;">
+                    Thunderbolt Power League Fall 2025
+                  </h2>
+                  <h1 style="color: #333; margin: 0 0 20px 0; text-align: center; font-size: 28px;">
+                    Tryout Evaluation Report
+                  </h1>
+                  
+                  <div style="margin-bottom: 20px; padding: 15px; background-color: #f8f9fa; border-radius: 5px;">
+                    <p style="margin: 5px 0;"><strong>Coach:</strong> ${coachName}</p>
+                    <p style="margin: 5px 0;"><strong>Group:</strong> ${tryoutGroup}</p>
+                    <p style="margin: 5px 0;"><strong>Date:</strong> ${new Date().toLocaleDateString()}</p>
+                  </div>
+                  
+                  <!-- Scores Table -->
+                  <div style="overflow-x: auto;">
+                    <table style="width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 14px;">
+                      <thead>
+                        <tr style="background-color: #f0f0f0;">
+                          <th style="padding: 10px; border: 1px solid #ddd; text-align: left; font-weight: bold;">Player</th>
+                          <th style="padding: 10px; border: 1px solid #ddd; text-align: center; font-weight: bold;">Tryout #</th>
+                          <th style="padding: 10px; border: 1px solid #ddd; text-align: center; font-weight: bold;">Pass</th>
+                          <th style="padding: 10px; border: 1px solid #ddd; text-align: center; font-weight: bold;">Set</th>
+                          <th style="padding: 10px; border: 1px solid #ddd; text-align: center; font-weight: bold;">Hit</th>
+                          <th style="padding: 10px; border: 1px solid #ddd; text-align: center; font-weight: bold;">Serve</th>
+                          <th style="padding: 10px; border: 1px solid #ddd; text-align: center; font-weight: bold;">Overall</th>
+                          <th style="padding: 10px; border: 1px solid #ddd; text-align: center; font-weight: bold;">PHD/Coach</th>
+                          <th style="padding: 10px; border: 1px solid #ddd; text-align: left; font-weight: bold;">Notes</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        ${scoreRowsHtml}
+                      </tbody>
+                    </table>
+                  </div>
+                  
+                  <!-- Summary Stats -->
+                  <div style="margin-top: 30px; padding: 20px; background-color: #f8f9fa; border-radius: 5px;">
+                    <h3 style="margin: 0 0 15px 0; color: #333;">Summary Statistics</h3>
+                    <div style="display: flex; justify-content: space-around; text-align: center;">
+                      <div>
+                        <p style="margin: 5px 0; color: #666; font-size: 12px;">Total Evaluated</p>
+                        <p style="margin: 5px 0; font-size: 24px; font-weight: bold; color: #1a1a1a;">${scores.length}</p>
+                      </div>
+                      <div>
+                        <p style="margin: 5px 0; color: #666; font-size: 12px;">Loves ❤️</p>
+                        <p style="margin: 5px 0; font-size: 24px; font-weight: bold; color: #28a745;">${scores.filter(s => s.love).length}</p>
+                      </div>
+                      <div>
+                        <p style="margin: 5px 0; color: #666; font-size: 12px;">Nos 🚫</p>
+                        <p style="margin: 5px 0; font-size: 24px; font-weight: bold; color: #dc3545;">${scores.filter(s => s.no).length}</p>
+                      </div>
+                    </div>
+                  </div>
+                </td>
+              </tr>
+              
+              <!-- Footer -->
+              <tr>
+                <td style="padding: 20px; background-color: #f8f8f8; text-align: center;">
+                  <p style="margin: 0; color: #666; font-size: 14px;">Questions? Contact us at info@nextpointperformance.com</p>
+                  <p style="margin: 10px 0 0 0; color: #999; font-size: 12px;">© 2025 Nextpoint Performance - Thunderbolt Power League</p>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+      </table>
     </body>
     </html>`;
 
@@ -127,7 +195,7 @@ export default async function handler(req, res) {
 
     // Send email using Resend
     const { data, error } = await resend.emails.send({
-      from: 'Next Point Volleyball <noreply@mail.nextpointperformance.com>',
+      from: 'Nextpoint Performance <noreply@mail.nextpointperformance.com>',
       to: recipientEmail,
       reply_to: 'info@nextpointperformance.com',
       subject: `Tryout Evaluation - ${tryoutGroup} - Coach ${coachName}`,
