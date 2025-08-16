@@ -68,22 +68,35 @@ export default async function handler(req, res) {
 
     // Generate the score rows HTML
     const scoreRowsHtml = scores.map(score => {
-      const playerNameWithEmojis = `${score.playerName}${score.love ? ' ❤️' : ''}${score.no ? ' 🚫' : ''}`;
+      // Build player name with indicators
+      let playerDisplay = score.playerName;
+      if (score.love) {
+        playerDisplay += ' <span style="color: #e74c3c; font-size: 16px;">♥</span>';
+      }
+      if (score.no) {
+        playerDisplay += ' <span style="color: #e74c3c; font-size: 16px;">⊘</span>';
+      }
+      
+      // Build PHD/Coach display
+      let phdCoachDisplay = [];
+      if (score.phd === true) {
+        phdCoachDisplay.push('<span style="color: #28a745; font-weight: bold;">✓ PHD</span>');
+      }
+      if (score.coachability === true) {
+        phdCoachDisplay.push('<span style="color: #5b3cc4; font-weight: bold;">✓ Coach</span>');
+      }
+      const phdCoachCell = phdCoachDisplay.length > 0 ? phdCoachDisplay.join('<br>') : '-';
       
       return `
         <tr>
-          <td style="padding: 10px; border: 1px solid #ddd; text-align: left;">${playerNameWithEmojis}</td>
+          <td style="padding: 10px; border: 1px solid #ddd; text-align: left;">${playerDisplay}</td>
           <td style="padding: 10px; border: 1px solid #ddd; text-align: center;">${score.tryoutNumber || '-'}</td>
           <td style="padding: 10px; border: 1px solid #ddd; text-align: center; background: ${getScoreBackgroundColor(score.passScore)}; font-weight: bold;">${score.passScore || 0}</td>
           <td style="padding: 10px; border: 1px solid #ddd; text-align: center; background: ${getScoreBackgroundColor(score.setScore)}; font-weight: bold;">${score.setScore || 0}</td>
           <td style="padding: 10px; border: 1px solid #ddd; text-align: center; background: ${getScoreBackgroundColor(score.hitScore)}; font-weight: bold;">${score.hitScore || 0}</td>
           <td style="padding: 10px; border: 1px solid #ddd; text-align: center; background: ${getScoreBackgroundColor(score.serveScore)}; font-weight: bold;">${score.serveScore || 0}</td>
           <td style="padding: 10px; border: 1px solid #ddd; text-align: center; background: ${getScoreBackgroundColor(score.overallScore)}; font-weight: bold; font-size: 16px;">${score.overallScore || 0}</td>
-          <td style="padding: 10px; border: 1px solid #ddd; text-align: center;">
-            ${score.phd ? '<span style="color: #28a745;">✓ PHD</span>' : ''}
-            ${score.coachability ? '<span style="color: #28a745;">✓ Coach</span>' : ''}
-            ${!score.phd && !score.coachability ? '-' : ''}
-          </td>
+          <td style="padding: 10px; border: 1px solid #ddd; text-align: center; white-space: nowrap;">${phdCoachCell}</td>
           <td style="padding: 10px; border: 1px solid #ddd; text-align: left;">${score.notes || '-'}</td>
         </tr>`;
     }).join('');
@@ -163,12 +176,12 @@ export default async function handler(req, res) {
                         <p style="margin: 5px 0; font-size: 24px; font-weight: bold; color: #1a1a1a;">${scores.length}</p>
                       </div>
                       <div>
-                        <p style="margin: 5px 0; color: #666; font-size: 12px;">Loves ❤️</p>
-                        <p style="margin: 5px 0; font-size: 24px; font-weight: bold; color: #28a745;">${scores.filter(s => s.love).length}</p>
+                        <p style="margin: 5px 0; color: #666; font-size: 12px;">Loves <span style="color: #e74c3c;">♥</span></p>
+                        <p style="margin: 5px 0; font-size: 24px; font-weight: bold; color: #28a745;">${scores.filter(s => s.love === true).length}</p>
                       </div>
                       <div>
-                        <p style="margin: 5px 0; color: #666; font-size: 12px;">Nos 🚫</p>
-                        <p style="margin: 5px 0; font-size: 24px; font-weight: bold; color: #dc3545;">${scores.filter(s => s.no).length}</p>
+                        <p style="margin: 5px 0; color: #666; font-size: 12px;">Nos <span style="color: #e74c3c;">⊘</span></p>
+                        <p style="margin: 5px 0; font-size: 24px; font-weight: bold; color: #dc3545;">${scores.filter(s => s.no === true).length}</p>
                       </div>
                     </div>
                   </div>
@@ -192,6 +205,7 @@ export default async function handler(req, res) {
     // Log for debugging
     console.log('Sending email to:', recipientEmail);
     console.log('Number of scores:', scores.length);
+    console.log('Sample score data:', scores[0]); // Log first score to check phd/coachability values
 
     // Send email using Resend
     const { data, error } = await resend.emails.send({
