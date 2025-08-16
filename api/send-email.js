@@ -5,9 +5,35 @@ import { Resend } from 'resend';
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 export default async function handler(req, res) {
-  // Set CORS headers to allow your Zite app to call this API
-  res.setHeader('Access-Control-Allow-Credentials', true);
-  res.setHeader('Access-Control-Allow-Origin', 'https://registration.nextpointperformance.com');
+  // Set CORS headers to allow requests from your domains
+  const allowedOrigins = [
+    'https://registration.nextpointperformance.com',
+    'https://app.zite.io',
+    'https://app.fillout.com',
+    'http://localhost:3000',
+    'http://localhost:5173',
+    'https://*.zite.app',
+    'https://*.fillout.com'
+  ];
+  
+  const origin = req.headers.origin;
+  
+  // Check if the origin is allowed
+  if (origin && (allowedOrigins.includes(origin) || 
+      allowedOrigins.some(allowed => {
+        if (allowed.includes('*')) {
+          const pattern = allowed.replace('*', '.*');
+          return new RegExp(pattern).test(origin);
+        }
+        return false;
+      }))) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+  } else {
+    // For testing, you can temporarily use * to allow all origins
+    res.setHeader('Access-Control-Allow-Origin', '*');
+  }
+  
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
   res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
   res.setHeader(
     'Access-Control-Allow-Headers',
@@ -95,6 +121,10 @@ export default async function handler(req, res) {
     </body>
     </html>`;
 
+    // Log for debugging
+    console.log('Sending email to:', recipientEmail);
+    console.log('Number of scores:', scores.length);
+
     // Send email using Resend
     const { data, error } = await resend.emails.send({
       from: 'Next Point Volleyball <noreply@mail.nextpointperformance.com>',
@@ -111,6 +141,8 @@ export default async function handler(req, res) {
         error: error.message 
       });
     }
+
+    console.log('Email sent successfully:', data.id);
 
     // Return success response
     return res.status(200).json({ 
